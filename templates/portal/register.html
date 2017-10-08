@@ -18,8 +18,14 @@
                         {% include 'portal/form_template.html' %}
                         <div class="form-group">
                             <div class="col-sm-offset-2 col-sm-10">
-                                <button type="submit" class="btn btn-success">Register</button>
+                                 <input type="checkbox" class="filled-in" id="agree" >
+                                 <label for="agree">
+                                     <h6>I agree to the
+                                         <a class ="link" href="{% url 'portal:terms' %}">Terms and Conditions</a> of Atrax Web Portal
+                                     </h6>
+                                 </label>
                             </div>
+                                <button type="submit" class="btn btn-success">Register</button>
                         </div>
                     </form>
                 </div>

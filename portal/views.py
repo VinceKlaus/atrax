@@ -1,10 +1,18 @@
-from django.contrib.auth import authenticate, login
-from django.contrib.auth import logout
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+import os
+import docx
+import PyPDF2
+import errno
 from django.db.models import Q
-from .forms import LiteratureTypeForm, LiteratureForm, LiteratureForm_b, UserForm
+from django.conf import settings
+from googletrans import Translator
+from django.http import JsonResponse
+from django.contrib.auth import logout
 from .models import LiteratureType, Literature
+from django.conf.global_settings import MEDIA_ROOT
+from django.contrib.auth import authenticate, login
+from django.core.files.storage import default_storage
+from django.shortcuts import render, get_object_or_404
+from .forms import LiteratureTypeForm, LiteratureForm, LiteratureForm_b, UserForm
 
 
 LIT_FILE_TYPES = ['pdf']
@@ -63,41 +71,45 @@ def literatures(request, filter_by):
 
 
 def login_user(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                # albums = Album.objects.filter(user=request.user)
-                lit_types = LiteratureType.objects.all()
-                return render(request, 'portal/index.html', {'lit_types': lit_types})
+    if request.user.is_authenticated():
+        return render(request, 'portal/index.html')
+    else:
+        if request.method == "POST":
+            username = request.POST['username']
+            password = request.POST['password']
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    login(request, user)
+                    # albums = Album.objects.filter(user=request.user)
+                    lit_types = LiteratureType.objects.all()
+                    return render(request, 'portal/index.html', {'lit_types': lit_types})
+                else:
+                    return render(request, 'portal/login.html', {'error_message': 'Your account has been disabled'})
             else:
-                return render(request, 'portal/login.html', {'error_message': 'Your account has been disabled'})
-        else:
-            return render(request, 'portal/login.html', {'error_message': 'Invalid username or password'})
-    return render(request, 'portal/login.html')
+                return render(request, 'portal/login.html', {'error_message': 'Invalid username or password'})
+        return render(request, 'portal/login.html')
 
 
 def register(request):
-    form = UserForm(request.POST or None)
-    if form.is_valid():
-        user = form.save(commit=False)
-        username = form.cleaned_data['username']
-        password = form.cleaned_data['password']
-        user.set_password(password)
-        user.save()
-        user = authenticate(username=username, password=password)
-        if user is not None:
-            if user.is_active:
-                login(request, user)
-                lit_types = LiteratureType.objects.filter(user=request.user)
-                return render(request, 'portal/index.html', {'lit_types': lit_types})
-    context = {
-        "form": form,
-    }
-    return render(request, 'portal/register.html', context)
+    if request.user.is_authenticated():
+        return render(request, 'portal/index.html')
+    else:
+        form = UserForm(request.POST or None)
+        if form.is_valid():
+            user = form.save(commit=False)
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            user.set_password(password)
+            user.save()
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                if user.is_active:
+                    return render(request, 'portal/login.html')
+        context = {
+            "form": form,
+        }
+        return render(request, 'portal/register.html', context)
 
 
 def logout_user(request):
@@ -153,6 +165,45 @@ def contribute(request, lit_type_id):
                 'error_message': 'Literature file must be PDF',
             }
             return render(request, 'portal/contribute.html', context)
+
+        lit_file = request.FILES['id_lit_file']
+        if not os.path.exists('temp/'):
+            try:
+                os.makedirs('temp/')
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+        filename = default_storage.save('temp/' + lit_file.name, lit_file)
+
+        Obj = open(os.path.join(settings.MEDIA_ROOT,filename),'rb')
+        pdf_reader = PyPDF2.PdfFileReader(Obj)
+
+        pdfArray = []
+        pdfpages = pdf_reader.numPages
+
+        #convert to Document
+        lit_filename = filename.name
+        translated_filename = lit_filename.replace('.pdf','.docx')
+
+        translator = Translator()
+        doc = docx.Document()
+
+        for pageNum in range(pdfpages):
+            pageObj = pdf_reader.getPage(pageNum)
+            pdf = pageObj.extractText()
+            translations = translator.translate(pdf, dest='ceb')
+
+            pdfArray.append(translations.text)
+            doc.add_paragraph(translations.text)
+
+        Obj.close()
+        default_storage.delete(filename)
+
+        translatedFile_path = 'media/translated_documents/'+ translated_filename
+        doc.save(translatedFile_path)
+
+        literature_lit_file = default_storage.url(translated_filename)
+        document_instance = Literature.objects.create(lit_file=literature_lit_file)
 
         literature.save()
         return render(request, 'portal/detail.html', {'lit_type': lit_type})
@@ -245,3 +296,5 @@ def contribute_form(request, lit_type_id):
         return render(request, 'portal/contribute_b.html', context)"""
 
 
+def termsandcondition(request):
+    return render(request, "portal/termsandcondition.html")

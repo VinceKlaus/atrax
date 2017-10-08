@@ -15,4 +15,5 @@ urlpatterns = [
     url(r'^contribute_b/$', views.contribute_b, name='contribute_b'),
     url(r'^contribute_b/(?P<lit_type_id>[0-9]+)/contribute_form/$', views.contribute_form, name='contribute_form'),
     url(r'^literature/(?P<filter_by>[a-zA_Z]+)/$', views.literatures, name='literature'),
+    url(r'^terms/$', views.termsandcondition, name='terms'),
 ]

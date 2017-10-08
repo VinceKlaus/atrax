@@ -37,10 +37,16 @@ class LiteratureForm_b(forms.ModelForm):
             'lit_file': 'File',
         }
 
+
 class UserForm(forms.ModelForm):
+
     password = forms.CharField(widget=forms.PasswordInput)
-    email = forms.CharField(widget=forms.EmailInput)
+    confirm_password = forms.CharField(widget=forms.PasswordInput)
+    first_name = forms.CharField(required=True)
+    last_name = forms.CharField(required=True)
+    username = forms.CharField(widget=forms.EmailInput, required=True, label='Email')
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['first_name', 'last_name',  'username', 'password', 'confirm_password']
+
