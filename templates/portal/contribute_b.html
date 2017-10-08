@@ -1,0 +1,28 @@
+{% extends 'portal/base.html' %}
+{% block title %}Contribute{% endblock %}
+{% block lit_type_acitve %}active{% endblock %}
+
+{% block body %}
+<div class="albums-container container-fluid">
+    <!-- Literature Types -->
+    <div class="row">
+        <div class="col-sm-3 col-md-2">
+
+                    <h3>Contribute</h3>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    {% if lit_types %}
+
+                        {% for lit_type in lit_types %}
+                        <div class="thumbnail">
+                            <a href="{% url 'portal:contribute_form' lit_type.id %}" class="btn btn-primary btn-lg" role="presentation">{{ lit_type.lit_type_name }}</a>
+                        </div>
+                            {% cycle '' '' '' '' '' '<div class="clearfix visible-lg"></div>' %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
