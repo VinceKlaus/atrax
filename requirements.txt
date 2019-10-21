@@ -50,7 +50,7 @@ six==1.11.0
 static3==0.7.0
 translate==2.0.0
 uritemplate==3.0.0
-urllib3==1.21.1
+urllib3==1.24.2
 virtualenv==15.1.0
 watson-developer-cloud==0.26.0
 zope.interface==4.4.1
