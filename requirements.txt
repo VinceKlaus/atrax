@@ -9,7 +9,7 @@ cssselect==1.0.1
 decorator==4.1.2
 dj-database-url==0.4.2
 dj-static==0.0.6
-Django==1.9.4
+Django==1.11.28
 django-appconf==1.0.2
 django-avatar==4.0.1
 django-birthday==0.1.2
