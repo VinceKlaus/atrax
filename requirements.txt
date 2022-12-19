@@ -15,7 +15,7 @@ django-avatar==4.0.1
 django-birthday==0.1.2
 django-crispy-forms==1.6.1
 django-registration==2.3
-django-termsandconditions==1.1.15
+django-termsandconditions==2.0.11
 docx==0.2.4
 future==0.16.0
 futures==3.1.1
